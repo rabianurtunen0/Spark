@@ -1,17 +1,28 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:get/get_utils/get_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spark_app/carRental/helpAndSupportPage.dart';
 import 'package:spark_app/carRental/notificationPage.dart';
 import 'package:spark_app/carRental/privileges.dart';
 import 'package:spark_app/carRental/serviceAreas.dart';
 import 'package:spark_app/carRental/carsAndPricesPage.dart';
 import 'package:spark_app/firstPage.dart';
+import 'package:spark_app/signUpPage.dart';
 
 class ProfilePage extends StatefulWidget {
-  const ProfilePage({super.key});
+  String fullName, email;
+
+  ProfilePage({
+    Key? key,
+    required this.fullName,
+    required this.email,
+  }) : super(key: key);
 
   @override
   State<ProfilePage> createState() => _ProfilePageState();
@@ -32,9 +43,7 @@ class _ProfilePageState extends State<ProfilePage> {
         .then((value) => setState(() {
               containerButton = true;
             }));
-    if(mounted) {
-      
-    }
+    if (mounted) {}
   }
 
   @override
@@ -61,34 +70,71 @@ class _ProfilePageState extends State<ProfilePage> {
               alignment: Alignment.topRight,
               children: [
                 Container(
-                  margin: EdgeInsets.only(top: MediaQuery.of(context).size.height * 0.12),
+                  margin: EdgeInsets.only(
+                      top: widget.email == ""
+                          ? MediaQuery.of(context).size.height * 0.11
+                          : MediaQuery.of(context).size.height * 0.12),
                   alignment: Alignment.centerLeft,
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Rabia Nur Tünen',
+                        widget.fullName,
                         style: TextStyle(
                           color: Theme.of(context).scaffoldBackgroundColor,
                           fontSize: 20,
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      const Text(
-                        'rrabianurtunen@gmail.com',
-                        style: TextStyle(
-                          color: Color(0XFFC4C8CD),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      )
+                      widget.email == ""
+                          ? Container(
+                              margin: EdgeInsets.only(
+                                  top: MediaQuery.of(context).size.height *
+                                      0.01),
+                              width: MediaQuery.of(context).size.width * 0.3,
+                              height: MediaQuery.of(context).size.width * 0.09,
+                              child: MaterialButton(
+                                onPressed: () {
+                                  setState(() {
+                                    Get.to(const SignUpPage());
+                                  });
+                                },
+                                color: const Color(0XFFD0E5E1).withOpacity(0.4),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(18.0),
+                                ),
+                                elevation: 0.0,
+                                highlightElevation: 0.0,
+                                highlightColor:
+                                    const Color(0XFFD0E5E1).withOpacity(0.2),
+                                splashColor:
+                                    const Color(0XFFD0E5E1).withOpacity(0.2),
+                                child: Text(
+                                  'Üye olunuz',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: ScreenUtil().setSp(11),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Text(
+                              widget.email,
+                              style: const TextStyle(
+                                color: Color(0XFFC4C8CD),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            )
                     ],
                   ),
                 ),
                 Container(
                   margin: EdgeInsets.only(
-                      top: MediaQuery.of(context).size.height * 0.06),
+                      top: MediaQuery.of(context).size.height * 0.07),
                   child: IconButton(
                     onPressed: () {
                       setState(() {
@@ -443,10 +489,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   elevation: 0,
                   height: MediaQuery.of(context).size.height * 0.07,
                   highlightElevation: 0,
-                  onPressed: () {
-                    setState(() {
-                      Get.offAll(() => const FirstPage());
-                    });
+                  onPressed: () async {
+                    SharedPreferences prefs =
+                        await SharedPreferences.getInstance();
+                    prefs.remove("email");
+                    await FirebaseAuth.instance.signOut();
+                    Get.offAll(() => const FirstPage());
                   },
                   color: Colors.transparent,
                   splashColor: Colors.transparent,

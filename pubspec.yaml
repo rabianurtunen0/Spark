@@ -49,6 +49,13 @@ dependencies:
   # geolocator: ^10.1.0
   # flutter_polyline_points: ^2.0.0
   # scanbot_sdk: ^2.12.1 
+  firebase_core: ^2.22.0
+  firebase_auth: ^4.14.0
+  cloud_firestore: ^4.13.1 
+  fluttertoast: ^8.2.4
+  #google_sign_in: ^6.1.6
+  intl: ^0.18.1
+  shared_preferences: ^2.0.15
 
 dev_dependencies:
   flutter_test:

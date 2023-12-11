@@ -1,9 +1,11 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_snake_navigationbar/flutter_snake_navigationbar.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spark_app/carRental/homePage.dart';
 import 'package:spark_app/carRental/profilePage.dart';
 
@@ -20,11 +22,36 @@ class _CarRentalState extends State<CarRental> {
   late final pageController = PageController(
     initialPage: selectedItemPosition,
   );
+  /*
   List<Widget> bottomBarPages = [
     const HomePage(),
     const ProfilePage(),
-
   ];
+  */
+
+  String fullNameText = "";
+  String emailText = "";
+
+  void getInformations() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var email = prefs.getString("email");
+    print(email);
+    if (email == null) {
+      fullNameText = "Misafir Kullanıcı";
+      emailText = "";
+    } else {
+      DocumentSnapshot documentSnapshot =
+          await FirebaseFirestore.instance.collection('Users').doc(email).get();
+      fullNameText = documentSnapshot.get('fullname');
+      emailText = documentSnapshot.get('email');
+    }
+  }
+
+  @override
+  void initState() {
+    getInformations();
+    super.initState();
+  }
 
   @override
   void dispose() {
@@ -45,9 +72,15 @@ class _CarRentalState extends State<CarRental> {
           controller: pageController,
           physics: const NeverScrollableScrollPhysics(),
           children: List.generate(
-            bottomBarPages.length,
+            2,
+            //bottomBarPages.length,
             (index) {
-              return bottomBarPages[index];
+              if (index == 0) {
+                return const HomePage();
+              } else {
+                return ProfilePage(fullName: fullNameText, email: emailText);
+              }
+              //return bottomBarPages[index];
             },
           ),
         ),

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "930505636128",
+    "project_id": "spark-fc2c5",
+    "storage_bucket": "spark-fc2c5.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:930505636128:android:ad9d12e440645bd3c43f45",
+        "android_client_info": {
+          "package_name": "com.example.spark_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAs19Xhr9dPe_T2Gqt4ordSnmiD-ZIr66w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

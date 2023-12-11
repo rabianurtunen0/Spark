@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:ui' as ui;
 import 'dart:math';
-import 'package:flutter/services.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -31,99 +31,33 @@ class _HomePageState extends State<HomePage> {
   bool fuelGasoline = true;
   bool fuelElectric = true;
 
-  List<LatLng> positions = [
-    const LatLng(37.906947, 32.495517),
-    const LatLng(37.905616, 32.492587),
-    const LatLng(37.904983, 32.493304),
-    const LatLng(37.949113, 32.498581),
-    const LatLng(37.927085, 32.516324),
-    const LatLng(37.882495, 32.490526),
-    const LatLng(37.856606, 32.471254),
-    const LatLng(37.893461, 32.476229),
-    const LatLng(37.918623, 32.507004),
-    const LatLng(39.932514, 32.822661),
-    const LatLng(39.901646, 32.860433),
-    const LatLng(39.908392, 32.877493),
-    const LatLng(39.916615, 32.859934),
-    const LatLng(39.773252, 30.503248),
-    const LatLng(39.761585, 30.513292),
-    const LatLng(39.764942, 30.491457),
-    const LatLng(39.781958, 30.514409),
-    const LatLng(39.773763, 30.524464),
-    const LatLng(39.765332, 30.526292),
-    const LatLng(40.187635, 29.064935),
-    const LatLng(40.204880, 29.052743),
-    const LatLng(40.192813, 29.061933),
-    const LatLng(40.197919, 29.056997),
-    const LatLng(38.422209, 27.143301),
-    const LatLng(38.421326, 27.130776),
-    const LatLng(38.423624, 27.141436),
-    const LatLng(38.427110, 27.141295),
-    const LatLng(41.066098, 29.041560),
-    const LatLng(41.070835, 29.041676),
-    const LatLng(41.042060, 29.004283),
-    const LatLng(41.044091, 29.003333),
-    const LatLng(41.026318, 28.974820),
-    const LatLng(41.026686, 28.973189),
-    const LatLng(41.031772, 28.978543),
-    const LatLng(41.017386, 28.962432),
-  ];
-
   List<Marker> markersList = [];
   List<LatLng> polylineCoordinates = [];
 
-  List carsList = [
-    [
-      'Suzuki XL7',
-      'assets/images/suzuki_car.svg',
-      'XL7 III 1.5i ',
-      'Automatic',
-      'Gasoline',
-      '0.14',
-      '42',
-      '0.09',
-    ],
-    [
-      'Toyota C-HR',
-      'assets/images/toyota_car.svg',
-      'C-HR 1.8 Hybrid Flame',
-      'Automatic',
-      'Hybrid',
-      '0.15',
-      '45',
-      '0.10'
-    ],
-    [
-      'Mazda CX-5',
-      'assets/images/mazda_car.svg',
-      'CX-5 2.0 Power Sense 100. Yıl',
-      'Automatic',
-      'Gasoline',
-      '0.17',
-      '51',
-      '0.12'
-    ],
-    [
-      'Pegout 208',
-      'assets/images/peugeot_car.svg',
-      '208 1.2 PureTech',
-      'Automatic',
-      'Gasoline',
-      '0.15',
-      '45',
-      '0.10'
-    ],
-    [
-      'Chevrolet Trailblazer',
-      'assets/images/chevrolet_car.svg',
-      'Trailblazer AWD',
-      'Automatic',
-      'Gasoline',
-      '0.14',
-      '42',
-      '0.09'
-    ]
-  ];
+  List rentalCarList = [];
+  List<double> latitudeList = [];
+  List<double> longitudeList = [];
+
+  String model = '';
+  String property = '';
+  String gear = '';
+  String svgPath = '';
+  String walkingMinute = '';
+  String fuelPercentage = '';
+  String minutePrice = '';
+  String dailyPrice = '';
+  String additionalKmFee = '';
+  String distance = '';
+
+  double parseDouble(String value) {
+    try {
+      value = value.replaceAll(',', '').trim();
+      return double.parse(value);
+    } catch (e) {
+      print('Error parsing double: $value');
+      return 0.0;
+    }
+  }
 
   static Future<BitmapDescriptor> getBitmapDescriptorFromSvgAsset(
     String assetName, [
@@ -154,21 +88,106 @@ class _HomePageState extends State<HomePage> {
     return BitmapDescriptor.fromBytes(bytes.buffer.asUint8List());
   }
 
-  generateMarkersList() async {
+  getRentalCarInformations() async {
+    var collection = FirebaseFirestore.instance.collection('Rental Car');
+    var querySnapshot = await collection.get();
+    var list = querySnapshot.docs;
+    for (int i = 0; i < list.length; i++) {
+      rentalCarList.add(list[i].data());
+      var data = list[i].data();
+      double latitudeValue = data['latitude'];
+      double longitudeValue = data['longitude'];
+      latitudeList.add(latitudeValue);
+      longitudeList.add(longitudeValue);
+    }
+    print(rentalCarList);
+    print(latitudeList);
+    print(longitudeList);
+  }
+
+  double _toRadians(double degrees) {
+    return degrees * (pi / 180);
+  }
+
+  double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+    const double earthRadius = 6371000;
+
+    double dLat = _toRadians(lat2 - lat1);
+    double dLon = _toRadians(lon2 - lon1);
+
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+        cos(_toRadians(lat1)) *
+            cos(_toRadians(lat2)) *
+            sin(dLon / 2) *
+            sin(dLon / 2);
+
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a));
+
+    double distance = earthRadius * c;
+
+    return distance;
+  }
+
+  String formatDistance(double distanceInMeters) {
+    const double kmThreshold = 1000;
+
+    if (distanceInMeters >= kmThreshold) {
+      double distanceInKm = distanceInMeters / 1000;
+      return '${distanceInKm.toStringAsFixed(1)} km';
+    } else {
+      return '${distanceInMeters.toInt()} m';
+    }
+  }
+
+  double calculateWalkingMinutes(double distanceInMeters) {
+    double walkingSpeedMetersPerSecond = 5 / 3.6;
+    double walkingTimeInSeconds =
+        distanceInMeters / walkingSpeedMetersPerSecond;
+    double walkingTimeInMinutes = walkingTimeInSeconds / 60;
+    return walkingTimeInMinutes;
+  }
+
+  Future<void> generateMarkersList() async {
+    await getRentalCarInformations();
     BitmapDescriptor bitmapdescriptor = await getBitmapDescriptorFromSvgAsset(
         'assets/images/spark_marker_icon.svg');
-    for (int i = 0; i < positions.length; i++) {
+    for (int i = 0; i < latitudeList.length; i++) {
+      print(LatLng(latitudeList[i], longitudeList[i]).toString());
       markersList.add(
         Marker(
           markerId: MarkerId('Marker $i'),
-          position: positions[i],
+          position: LatLng(latitudeList[i], longitudeList[i]),
           icon: bitmapdescriptor,
-          
           onTap: () {
             setState(() {
-              destinationLatLng = positions[i];
+              destinationLatLng = LatLng(latitudeList[i], longitudeList[i]);
               polylineCoordinates = [];
               getPolyPoints();
+
+              double distanceValue = calculateDistance(
+                  latitudeList[i],
+                  longitudeList[i],
+                  currentLatLng.latitude,
+                  currentLatLng.longitude);
+              distance = formatDistance(distanceValue);
+
+              int walkingTime = calculateWalkingMinutes(distanceValue).toInt();
+              if (walkingTime < 60) {
+                walkingMinute = '$walkingTime min';
+              } else {
+                walkingMinute = '60+ min';
+              }
+
+              model = rentalCarList[i]['model'] ?? '';
+              property = rentalCarList[i]['property'] ?? '';
+              gear = rentalCarList[i]['gear'] ?? '';
+              svgPath =
+                  rentalCarList[i]['svgPath'] ?? 'assets/images/mazda_car.svg';
+              fuelPercentage = rentalCarList[i]['fuelPercentage'] ?? '';
+              minutePrice = rentalCarList[i]['minutePrice'] ?? '';
+              dailyPrice = rentalCarList[i]['dailyPrice'] ?? '';
+              additionalKmFee = rentalCarList[i]['additionalKmFee'] ?? '';
+
               selectedCar();
             });
           },
@@ -180,7 +199,7 @@ class _HomePageState extends State<HomePage> {
   void getPolyPoints() async {
     PolylinePoints polylinePoints = PolylinePoints();
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      "AIzaSyBJx4XjED45I8W5kYryTzGMpAqzBagdM18",
+      "AIzaSyDwX4rrF6volBhFMEJih9lmAsSDjy6lv8g",
       PointLatLng(currentLatLng.latitude, currentLatLng.longitude),
       PointLatLng(destinationLatLng.latitude, destinationLatLng.longitude),
       travelMode: TravelMode.driving,
@@ -196,12 +215,15 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  void initializeData() async {
+    await generateMarkersList();
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
-    setState(() {
-      generateMarkersList();
-    });
+    initializeData();
   }
 
   @override
@@ -344,7 +366,7 @@ class _HomePageState extends State<HomePage> {
                                                 0.06,
                                             MediaQuery.of(context).size.height *
                                                 0.004),
-                                        child: Text(carsList[2][0],
+                                        child: Text(model,
                                             style: TextStyle(
                                               color: const Color(0XFF131C24),
                                               fontWeight: FontWeight.w500,
@@ -360,7 +382,7 @@ class _HomePageState extends State<HomePage> {
                                                 0.06,
                                             MediaQuery.of(context).size.height *
                                                 0.012),
-                                        child: Text(carsList[2][2],
+                                        child: Text(property,
                                             style: TextStyle(
                                               color: Theme.of(context)
                                                   .disabledColor,
@@ -390,7 +412,7 @@ class _HomePageState extends State<HomePage> {
                                         borderRadius:
                                             BorderRadius.circular(12.0)),
                                     child: Center(
-                                      child: Text('46 m',
+                                      child: Text(distance,
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             color: Colors.white,
@@ -438,7 +460,7 @@ class _HomePageState extends State<HomePage> {
                                                       .height *
                                                   0.01),
                                           child: Text(
-                                            '60+min',
+                                            walkingMinute,
                                             style: TextStyle(
                                               color: const Color(0XFF131C24),
                                               fontWeight: FontWeight.w400,
@@ -491,7 +513,7 @@ class _HomePageState extends State<HomePage> {
                                                       .height *
                                                   0.01),
                                           child: Text(
-                                            carsList[2][3],
+                                            gear,
                                             style: TextStyle(
                                               color: const Color(0XFF131C24),
                                               fontWeight: FontWeight.w400,
@@ -536,7 +558,7 @@ class _HomePageState extends State<HomePage> {
                                                       .height *
                                                   0.01),
                                           child: Text(
-                                            '88%',
+                                            '$fuelPercentage%',
                                             style: TextStyle(
                                               color: const Color(0XFF131C24),
                                               fontWeight: FontWeight.w400,
@@ -603,7 +625,7 @@ class _HomePageState extends State<HomePage> {
                                 child: Row(
                                   children: [
                                     Text(
-                                      carsList[2][5] + ' €',
+                                      '$minutePrice €',
                                       style: TextStyle(
                                         color:
                                             Theme.of(context).primaryColorLight,
@@ -639,7 +661,7 @@ class _HomePageState extends State<HomePage> {
                                 child: Row(
                                   children: [
                                     Text(
-                                      carsList[2][6] + ' €',
+                                      '$dailyPrice €',
                                       style: TextStyle(
                                         color:
                                             Theme.of(context).primaryColorLight,
@@ -654,7 +676,7 @@ class _HomePageState extends State<HomePage> {
                                                   .width *
                                               0.02),
                                       child: Text(
-                                        '/ daily (+ €${carsList[2][7]}/km)',
+                                        '/ daily (+ €$additionalKmFee/km)',
                                         style: TextStyle(
                                           color:
                                               Theme.of(context).disabledColor,
@@ -691,7 +713,7 @@ class _HomePageState extends State<HomePage> {
                       margin: EdgeInsets.only(
                           right: MediaQuery.of(context).size.width * 0.08),
                       child: SvgPicture.asset(
-                        carsList[2][1],
+                        svgPath,
                         width: MediaQuery.of(context).size.width * 0.14,
                         height: MediaQuery.of(context).size.width * 0.14,
                       ),
@@ -714,7 +736,8 @@ class _HomePageState extends State<HomePage> {
           return StatefulBuilder(builder: (context, setState) {
             return Container(
               width: MediaQuery.of(context).size.width,
-              padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.01),
+              padding: EdgeInsets.only(
+                  bottom: MediaQuery.of(context).size.height * 0.01),
               decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: const BorderRadius.vertical(
@@ -771,7 +794,7 @@ class _HomePageState extends State<HomePage> {
                               style: TextStyle(
                                 color: Theme.of(context).primaryColorDark,
                                 fontWeight: FontWeight.w500,
-                              fontSize: ScreenUtil().setSp(10),
+                                fontSize: ScreenUtil().setSp(10),
                               ),
                             ),
                           ),
@@ -862,13 +885,11 @@ class _HomePageState extends State<HomePage> {
                                         const Color(0XFF89A6BF))
                                     : MaterialStateProperty.all<Color>(
                                         Colors.transparent),
-                                overlayColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => Colors.transparent),
+                                overlayColor: MaterialStateProperty.resolveWith(
+                                    (states) => Colors.transparent),
                                 side: MaterialStateProperty.all<BorderSide>(
                                     const BorderSide(
-                                        color: Color(0XFF89A6BF),
-                                        width: 1.0))),
+                                        color: Color(0XFF89A6BF), width: 1.0))),
                             onPressed: () {
                               setState(() {
                                 gearManual = !gearManual;
@@ -898,7 +919,8 @@ class _HomePageState extends State<HomePage> {
                               style: ButtonStyle(
                                   backgroundColor: gearAutomatic
                                       ? MaterialStateProperty.all<Color>(
-                                          const Color(0XFF89A6BF),)
+                                          const Color(0XFF89A6BF),
+                                        )
                                       : MaterialStateProperty.all<Color>(
                                           Colors.transparent),
                                   overlayColor:
@@ -963,18 +985,16 @@ class _HomePageState extends State<HomePage> {
                           height: MediaQuery.of(context).size.height * 0.036,
                           child: OutlinedButton(
                             style: ButtonStyle(
-                              backgroundColor: fuelGasoline
-                                      ? MaterialStateProperty.all<Color>(
-                                          const Color(0XFF89A6BF))
-                                      : MaterialStateProperty.all<Color>(
-                                          Colors.transparent),
-                                  overlayColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => Colors.transparent),
+                                backgroundColor: fuelGasoline
+                                    ? MaterialStateProperty.all<Color>(
+                                        const Color(0XFF89A6BF))
+                                    : MaterialStateProperty.all<Color>(
+                                        Colors.transparent),
+                                overlayColor: MaterialStateProperty.resolveWith(
+                                    (states) => Colors.transparent),
                                 side: MaterialStateProperty.all<BorderSide>(
                                     const BorderSide(
-                                        color: Color(0XFF89A6BF),
-                                        width: 1.0))),
+                                        color: Color(0XFF89A6BF), width: 1.0))),
                             onPressed: () {
                               setState(() {
                                 fuelGasoline = !fuelGasoline;
@@ -1001,35 +1021,33 @@ class _HomePageState extends State<HomePage> {
                           ),
                           height: MediaQuery.of(context).size.height * 0.036,
                           child: OutlinedButton(
-                              style: ButtonStyle(
+                            style: ButtonStyle(
                                 backgroundColor: fuelHybrid
-                                      ? MaterialStateProperty.all<Color>(
-                                          const Color(0XFF89A6BF))
-                                      : MaterialStateProperty.all<Color>(
-                                          Colors.transparent),
-                                  overlayColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => Colors.transparent),
-                                  side: MaterialStateProperty.all<BorderSide>(
-                                      const BorderSide(
-                                          color: Color(0XFF89A6BF),
-                                          width: 1.0))),
-                              onPressed: () {
-                                setState(() {
-                                  fuelHybrid = !fuelHybrid;
-                                });
-                              },
-                              child: Text(
-                                'Hybrid',
-                                style: TextStyle(
+                                    ? MaterialStateProperty.all<Color>(
+                                        const Color(0XFF89A6BF))
+                                    : MaterialStateProperty.all<Color>(
+                                        Colors.transparent),
+                                overlayColor: MaterialStateProperty.resolveWith(
+                                    (states) => Colors.transparent),
+                                side: MaterialStateProperty.all<BorderSide>(
+                                    const BorderSide(
+                                        color: Color(0XFF89A6BF), width: 1.0))),
+                            onPressed: () {
+                              setState(() {
+                                fuelHybrid = !fuelHybrid;
+                              });
+                            },
+                            child: Text(
+                              'Hybrid',
+                              style: TextStyle(
                                 color: fuelHybrid
                                     ? Colors.white
                                     : const Color(0XFF131C24),
                                 fontWeight: FontWeight.w500,
                                 fontSize: ScreenUtil().setSp(12),
                               ),
-                              ),
                             ),
+                          ),
                         ),
                         Container(
                           margin: EdgeInsets.fromLTRB(
@@ -1040,45 +1058,40 @@ class _HomePageState extends State<HomePage> {
                           ),
                           height: MediaQuery.of(context).size.height * 0.036,
                           child: OutlinedButton(
-                              style: ButtonStyle(
+                            style: ButtonStyle(
                                 backgroundColor: fuelElectric
-                                      ? MaterialStateProperty.all<Color>(
-                                          const Color(0XFF89A6BF))
-                                      : MaterialStateProperty.all<Color>(
-                                          Colors.transparent),
-                                  overlayColor:
-                                      MaterialStateProperty.resolveWith(
-                                          (states) => Colors.transparent),
-                                  side: MaterialStateProperty.all<BorderSide>(
-                                      const BorderSide(
-                                          color: Color(0XFF89A6BF),
-                                          width: 1.0))),
-                              onPressed: () {
-                                setState(() {
-                                  fuelElectric = !fuelElectric;
-                                });
-                              },
-                              child: Text(
-                                'Electric',
-                                style: TextStyle(
+                                    ? MaterialStateProperty.all<Color>(
+                                        const Color(0XFF89A6BF))
+                                    : MaterialStateProperty.all<Color>(
+                                        Colors.transparent),
+                                overlayColor: MaterialStateProperty.resolveWith(
+                                    (states) => Colors.transparent),
+                                side: MaterialStateProperty.all<BorderSide>(
+                                    const BorderSide(
+                                        color: Color(0XFF89A6BF), width: 1.0))),
+                            onPressed: () {
+                              setState(() {
+                                fuelElectric = !fuelElectric;
+                              });
+                            },
+                            child: Text(
+                              'Electric',
+                              style: TextStyle(
                                 color: fuelElectric
                                     ? Colors.white
                                     : const Color(0XFF131C24),
                                 fontWeight: FontWeight.w500,
                                 fontSize: ScreenUtil().setSp(12),
                               ),
-                              ),
                             ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    margin: EdgeInsets.fromLTRB(
-                      0.0,
-                      MediaQuery.of(context).size.height * 0.036, 
-                      0.0, 
-                      0.0),
+                    margin: EdgeInsets.fromLTRB(0.0,
+                        MediaQuery.of(context).size.height * 0.036, 0.0, 0.0),
                     width: MediaQuery.of(context).size.width * 0.68,
                     height: MediaQuery.of(context).size.height * 0.051,
                     child: ElevatedButton(
