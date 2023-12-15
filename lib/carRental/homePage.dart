@@ -24,6 +24,7 @@ class _HomePageState extends State<HomePage> {
   Completer<GoogleMapController> _controller = Completer();
   LatLng currentLatLng = const LatLng(37.903827, 32.494695);
   LatLng destinationLatLng = const LatLng(0.0, 0.0);
+  Set<Polyline> polylines = {};
   double sliderValue = 20.0;
   bool gearManual = true;
   bool gearAutomatic = true;
@@ -33,17 +34,14 @@ class _HomePageState extends State<HomePage> {
 
   List<Marker> markersList = [];
   List<LatLng> polylineCoordinates = [];
-
   List rentalCarList = [];
-  List<double> latitudeList = [];
-  List<double> longitudeList = [];
 
   String model = '';
   String property = '';
   String gear = '';
   String svgPath = '';
   String walkingMinute = '';
-  String fuelPercentage = '';
+  int fuelPercentage = 100;
   String minutePrice = '';
   String dailyPrice = '';
   String additionalKmFee = '';
@@ -95,14 +93,8 @@ class _HomePageState extends State<HomePage> {
     for (int i = 0; i < list.length; i++) {
       rentalCarList.add(list[i].data());
       var data = list[i].data();
-      double latitudeValue = data['latitude'];
-      double longitudeValue = data['longitude'];
-      latitudeList.add(latitudeValue);
-      longitudeList.add(longitudeValue);
     }
     print(rentalCarList);
-    print(latitudeList);
-    print(longitudeList);
   }
 
   double _toRadians(double degrees) {
@@ -148,25 +140,27 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> generateMarkersList() async {
-    await getRentalCarInformations();
     BitmapDescriptor bitmapdescriptor = await getBitmapDescriptorFromSvgAsset(
         'assets/images/spark_marker_icon.svg');
-    for (int i = 0; i < latitudeList.length; i++) {
-      print(LatLng(latitudeList[i], longitudeList[i]).toString());
+    for (int i = 0; i < rentalCarList.length; i++) {
+      print(LatLng(rentalCarList[i]['latitude'], rentalCarList[i]['longitude'])
+          .toString());
       markersList.add(
         Marker(
           markerId: MarkerId('Marker $i'),
-          position: LatLng(latitudeList[i], longitudeList[i]),
+          position: LatLng(
+              rentalCarList[i]['latitude'], rentalCarList[i]['longitude']),
           icon: bitmapdescriptor,
           onTap: () {
             setState(() {
-              destinationLatLng = LatLng(latitudeList[i], longitudeList[i]);
+              destinationLatLng = LatLng(
+                  rentalCarList[i]['latitude'], rentalCarList[i]['longitude']);
               polylineCoordinates = [];
               getPolyPoints();
 
               double distanceValue = calculateDistance(
-                  latitudeList[i],
-                  longitudeList[i],
+                  rentalCarList[i]['latitude'],
+                  rentalCarList[i]['longitude'],
                   currentLatLng.latitude,
                   currentLatLng.longitude);
               distance = formatDistance(distanceValue);
@@ -183,11 +177,10 @@ class _HomePageState extends State<HomePage> {
               gear = rentalCarList[i]['gear'] ?? '';
               svgPath =
                   rentalCarList[i]['svgPath'] ?? 'assets/images/mazda_car.svg';
-              fuelPercentage = rentalCarList[i]['fuelPercentage'] ?? '';
+              fuelPercentage = rentalCarList[i]['fuelPercentage'] ?? 100;
               minutePrice = rentalCarList[i]['minutePrice'] ?? '';
               dailyPrice = rentalCarList[i]['dailyPrice'] ?? '';
               additionalKmFee = rentalCarList[i]['additionalKmFee'] ?? '';
-
               selectedCar();
             });
           },
@@ -211,11 +204,70 @@ class _HomePageState extends State<HomePage> {
           LatLng(point.latitude, point.longitude),
         ),
       );
+      polylines.add(Polyline(
+        polylineId: const PolylineId("route"),
+        points: polylineCoordinates,
+        color: Theme.of(context).primaryColorDark,
+        width: 4,
+        endCap: Cap.buttCap,
+        startCap: Cap.buttCap,
+      ));
       setState(() {});
     }
   }
 
+  void filters() async {
+    var collection = FirebaseFirestore.instance.collection('Rental Car');
+    var querySnapshot = await collection.get();
+    var list = querySnapshot.docs;
+    var rentalCarList2 = [];
+    for (int i = 0; i < list.length; i++) {
+      rentalCarList2.add(list[i].data());
+      var data = list[i].data();
+    }
+    rentalCarList2
+        .removeWhere((car) => car['fuelPercentage'] < sliderValue.toInt());
+    setState(() {
+      rentalCarList = rentalCarList2;
+    });
+    if (gearManual == false) {
+      rentalCarList2.removeWhere((car) => car['gear'] == 'Manual');
+      setState(() {
+        rentalCarList = rentalCarList2;
+      });
+    }
+    if (gearAutomatic == false) {
+      rentalCarList2.removeWhere((car) => car['gear'] == 'Automatic');
+      setState(() {
+        rentalCarList = rentalCarList2;
+      });
+    }
+    if (fuelGasoline == false) {
+      rentalCarList2.removeWhere((car) => car['fuel'] == 'Gasoline');
+      setState(() {
+        rentalCarList = rentalCarList2;
+      });
+    }
+    if (fuelHybrid == false) {
+      rentalCarList2.removeWhere((car) => car['fuel'] == 'Hybrid');
+      setState(() {
+        rentalCarList = rentalCarList2;
+      });
+    }
+    if (fuelElectric == false) {
+      rentalCarList2.removeWhere((car) => car['fuel'] == 'Electric');
+      setState(() {
+        rentalCarList = rentalCarList2;
+      });
+    }
+    markersList = [];
+    await generateMarkersList();
+    print(rentalCarList.length);
+    setState(() {});
+  }
+
   void initializeData() async {
+    await getRentalCarInformations();
     await generateMarkersList();
     setState(() {});
   }
@@ -224,6 +276,11 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     initializeData();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
   }
 
   @override
@@ -248,16 +305,7 @@ class _HomePageState extends State<HomePage> {
               });
             },
             markers: Set<Marker>.of(markersList),
-            polylines: {
-              Polyline(
-                polylineId: const PolylineId("route"),
-                points: polylineCoordinates,
-                color: Theme.of(context).primaryColorDark,
-                width: 4,
-                endCap: Cap.buttCap,
-                startCap: Cap.buttCap,
-              ),
-            },
+            polylines: polylines,
           ),
           Container(
             margin: EdgeInsets.fromLTRB(MediaQuery.of(context).size.width * 0.2,
@@ -273,9 +321,9 @@ class _HomePageState extends State<HomePage> {
                   splashColor: const Color(0XFF53799A),
                   highlightColor: const Color(0XFF53799A),
                   onPressed: () {
-                    setState(() {
-                      selectFilters();
-                    });
+                    selectFilters();
+                    polylines.clear();
+                    setState(() {});
                   },
                   shape: CircleBorder(
                     side: BorderSide(
@@ -835,7 +883,7 @@ class _HomePageState extends State<HomePage> {
                     child: Slider(
                       value: sliderValue,
                       max: 100,
-                      divisions: 10,
+                      divisions: 20,
                       label: sliderValue.toString(),
                       onChanged: (value) {
                         setState(() {
@@ -1096,7 +1144,9 @@ class _HomePageState extends State<HomePage> {
                     height: MediaQuery.of(context).size.height * 0.051,
                     child: ElevatedButton(
                       onPressed: () {
+                        filters();
                         setState(() {
+                          print(markersList);
                           Navigator.pop(context);
                         });
                       },

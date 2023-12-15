@@ -62,7 +62,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   effect: SwapEffect(
                     activeDotColor: Theme.of(context).primaryColorDark,
                     dotColor: Theme.of(context).cardColor,
-                    dotHeight: 12,
+                    dotHeight: 8,
                     dotWidth: 48,
                     spacing: 16,
                     //verticalOffset: 10,
@@ -110,7 +110,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       TextButton(
                         onPressed: () {
                           setState(() {
-                            Get.to(const LoginPage(),
+                            Get.off(const LoginPage(),
                                 duration: const Duration(milliseconds: 200),
                                 transition: Transition.fadeIn);
                           });
