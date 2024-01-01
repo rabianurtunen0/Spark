@@ -7,7 +7,7 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spark_app/forgotPasswordPage.dart';
-import 'package:spark_app/homePage.dart';
+import 'package:spark_app/sparkHomePage.dart';
 import 'package:spark_app/signUpPage.dart';
 
 class LoginPage extends StatefulWidget {
@@ -83,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
                             0.0,
                             0.0),
                         width: MediaQuery.of(context).size.width * 0.68,
-                        height: MediaQuery.of(context).size.height * 0.051,
+                        height: MediaQuery.of(context).size.height * 0.048,
                         child: OutlinedButton(
                           onPressed: () {
                             setState(() {});
@@ -133,7 +133,7 @@ class _LoginPageState extends State<LoginPage> {
                             0.0,
                             0.0),
                         width: MediaQuery.of(context).size.width * 0.68,
-                        height: MediaQuery.of(context).size.height * 0.051,
+                        height: MediaQuery.of(context).size.height * 0.048,
                         child: OutlinedButton(
                           onPressed: () {
                             setState(() {});
@@ -439,7 +439,7 @@ class _LoginPageState extends State<LoginPage> {
                             0.0,
                             0.0),
                         width: MediaQuery.of(context).size.width * 0.68,
-                        height: MediaQuery.of(context).size.height * 0.051,
+                        height: MediaQuery.of(context).size.height * 0.048,
                         child: ElevatedButton(
                           onPressed: () {
                             setState(() {
@@ -515,7 +515,7 @@ class _LoginPageState extends State<LoginPage> {
           fontSize: 14.0,
         );
 
-        Get.offAll(const HomePage());
+        Get.offAll(const SparkHomePage());
 
         final prefs = await SharedPreferences.getInstance();
         prefs.remove("email");
