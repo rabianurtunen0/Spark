@@ -7,10 +7,10 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
 
-class AddCreditCard extends StatefulWidget {
+class CardPage extends StatefulWidget {
   String cardNumber, cardholderName, cvv, expirationDate;
 
-  AddCreditCard({
+  CardPage({
     Key? key,
     required this.cardNumber,
     required this.cardholderName,
@@ -19,10 +19,10 @@ class AddCreditCard extends StatefulWidget {
   }) : super(key: key);
 
   @override
-  State<AddCreditCard> createState() => _AddCreditCardState();
+  State<CardPage> createState() => _CardPageState();
 }
 
-class _AddCreditCardState extends State<AddCreditCard> {
+class _CardPageState extends State<CardPage> {
   ScrollController _scrollController = ScrollController();
   late TextEditingController cardNumberEditingController;
   late TextEditingController cardholderNameEditingController;
@@ -529,7 +529,7 @@ class _AddCreditCardState extends State<AddCreditCard> {
                       child: OutlinedButton(
                         onPressed: () {
                           setState(() {
-                            deleteDocumentsIfCardNumberMatches(widget.cardNumber);
+                            //deleteDocumentsIfCardNumberMatches(widget.cardNumber);
                             Get.back();
                           });
                         },
@@ -548,7 +548,7 @@ class _AddCreditCardState extends State<AddCreditCard> {
       ),
     );
   }
-
+/*
   Future<void> deleteDocumentsIfCardNumberMatches(String cardNumber) async {
     try {
       var collection = FirebaseFirestore.instance
@@ -569,6 +569,7 @@ class _AddCreditCardState extends State<AddCreditCard> {
       print('Error deleting documents: $error');
     }
   }
+  */
 }
 
 class CardNumberFormatter extends TextInputFormatter {

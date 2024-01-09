@@ -6,7 +6,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
-import 'package:spark_app/carRental/addCreditCardPage.dart';
+import 'package:spark_app/carRental/cardPage.dart';
 import 'package:spark_app/carRental/carRental.dart';
 import 'package:spark_app/carRental/membershipAgreementPage.dart';
 import 'package:spark_app/carRental/profilePage.dart';
@@ -840,7 +840,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                                       MaterialButton(
                                         onPressed: () {
                                           setState(() {
-                                            Get.to(AddCreditCard(
+                                            Get.to(CardPage(
                                                 cardNumber:
                                                     widget.cardsList[index]
                                                         ["cardNumber"],
@@ -953,7 +953,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
                                 child: MaterialButton(
                                   onPressed: () {
                                     setState(() {
-                                      Get.to(AddCreditCard(
+                                      Get.to(CardPage(
                                           cardNumber: "",
                                           cardholderName: "",
                                           cvv: "",
