@@ -7,10 +7,17 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spark_app/carRental/homePage.dart';
+import 'package:spark_app/sparkHomePage.dart';
 import 'package:spark_app/carRental/profilePage.dart';
 
 class CarRental extends StatefulWidget {
-  const CarRental({super.key});
+  int selectedItemPosition;
+
+  CarRental({
+    Key? key,
+    required this.selectedItemPosition,
+  }) : super(key: key);
+  
 
   @override
   State<CarRental> createState() => _CarRentalState();
@@ -18,7 +25,7 @@ class CarRental extends StatefulWidget {
 
 class _CarRentalState extends State<CarRental> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  int selectedItemPosition = 0;
+  late int selectedItemPosition;
   late final pageController = PageController(
     initialPage: selectedItemPosition,
   );
@@ -37,7 +44,7 @@ class _CarRentalState extends State<CarRental> {
     var email = prefs.getString("email");
     print(email);
     if (email == null) {
-      fullNameText = "Misafir Kullanıcı";
+      fullNameText = "Guest User";
       emailText = "";
     } else {
       DocumentSnapshot documentSnapshot =
@@ -45,19 +52,17 @@ class _CarRentalState extends State<CarRental> {
       fullNameText = documentSnapshot.get('fullname');
       emailText = documentSnapshot.get('email');
     }
+    setState(() {});
   }
 
   @override
   void initState() {
-    getInformations();
     super.initState();
+    getInformations();
+    selectedItemPosition = widget.selectedItemPosition;
   }
 
-  @override
-  void dispose() {
-    pageController.dispose();
-    super.dispose();
-  }
+ 
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +99,10 @@ class _CarRentalState extends State<CarRental> {
           child: FloatingActionButton(
             onPressed: () {
               setState(() {
-                Get.back();
+                Get.offAll(
+                  const SparkHomePage(),
+                  transition: Transition.leftToRight
+                );
               });
             },
             child: Icon(

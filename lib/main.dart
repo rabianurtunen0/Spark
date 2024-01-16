@@ -4,7 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spark_app/firstPage.dart';
-import 'package:spark_app/homePage.dart';
+import 'package:spark_app/sparkHomePage.dart';
 import 'package:spark_app/theme.dart';
 
 Future<void> main() async {
@@ -69,7 +69,7 @@ class MyApp2 extends StatelessWidget {
         floatingActionButtonTheme: ThemeStyles().floatingActionButton,
         sliderTheme: ThemeStyles().sliderTheme,
       ),
-      home: const HomePage(),
+      home: const SparkHomePage(),
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
-import 'package:spark_app/homePage.dart';
+import 'package:spark_app/sparkHomePage.dart';
 import 'package:spark_app/loginPage.dart';
 import 'package:spark_app/signUpPage.dart';
 
@@ -78,7 +78,7 @@ class _SecondPageState extends State<SecondPage> {
             TextButton(
               onPressed: () {
                 setState(() {
-                  Get.offAll(const HomePage(),
+                  Get.offAll(const SparkHomePage(),
                     duration: const Duration(milliseconds: 400),
                     transition: Transition.fadeIn);
                 });

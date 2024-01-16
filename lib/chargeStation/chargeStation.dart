@@ -24,12 +24,6 @@ class _ChargeStationState extends State<ChargeStation> {
   ];
 
   @override
-  void dispose() {
-    pageController.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
