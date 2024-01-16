@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-class UpdateDriverLicensePage extends StatefulWidget {
-  const UpdateDriverLicensePage({super.key});
+class NotificationPage extends StatefulWidget {
+  const NotificationPage({super.key});
 
   @override
-  State<UpdateDriverLicensePage> createState() => _UpdateDriverLicensePageState();
+  State<NotificationPage> createState() => _NotificationPageState();
 }
 
-class _UpdateDriverLicensePageState extends State<UpdateDriverLicensePage> {
+class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Text(
-          'Ehliyet güncelleme',
+          'Bildirimler',
           style: TextStyle(
       color: Color(0XFF515856), 
       fontWeight: FontWeight.w500,

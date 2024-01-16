@@ -10,8 +10,8 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:spark_app/carRental/carRentalPage.dart';
-import 'package:spark_app/carRental/rentedCarPage.dart';
+import 'package:spark_app/carRental/rentalingPage.dart';
+import 'package:spark_app/carRental/rentedCar.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -46,7 +46,6 @@ class _HomePageState extends State<HomePage> {
   String dailyPrice = '';
   String additionalKmFee = '';
   String distance = '';
-  String address = '';
 
   double parseDouble(String value) {
     try {
@@ -182,7 +181,6 @@ class _HomePageState extends State<HomePage> {
               minutePrice = rentalCarList[i]['minutePrice'] ?? '';
               dailyPrice = rentalCarList[i]['dailyPrice'] ?? '';
               additionalKmFee = rentalCarList[i]['additionalKmFee'] ?? '';
-              address = rentalCarList[i]['address'] ?? '';
               selectedCar();
             });
           },
@@ -746,22 +744,11 @@ class _HomePageState extends State<HomePage> {
                                     0.0),
                                 width: MediaQuery.of(context).size.width * 0.68,
                                 height:
-                                    MediaQuery.of(context).size.height * 0.048,
+                                    MediaQuery.of(context).size.height * 0.051,
                                 child: ElevatedButton(
                                   onPressed: () {
                                     setState(() {
-                                      Get.to(CarRentalPage(
-                                          svgPath: svgPath,
-                                          model: model,
-                                          property: property,
-                                          distance: distance,
-                                          walkingMinute: walkingMinute,
-                                          gear: gear,
-                                          fuelPercentage: fuelPercentage,
-                                          dailyPrice: dailyPrice,
-                                          minutePrice: minutePrice,
-                                          additionalKmFee: additionalKmFee,
-                                          address: address));
+                                      Get.to(const RentalingPage());
                                     });
                                   },
                                   child: const Text('Rent'),
@@ -1154,7 +1141,7 @@ class _HomePageState extends State<HomePage> {
                     margin: EdgeInsets.fromLTRB(0.0,
                         MediaQuery.of(context).size.height * 0.036, 0.0, 0.0),
                     width: MediaQuery.of(context).size.width * 0.68,
-                    height: MediaQuery.of(context).size.height * 0.048,
+                    height: MediaQuery.of(context).size.height * 0.051,
                     child: ElevatedButton(
                       onPressed: () {
                         filters();

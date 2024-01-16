@@ -154,7 +154,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                   ),
                   SizedBox(
                     width: MediaQuery.of(context).size.width * 0.68,
-                    height: MediaQuery.of(context).size.height * 0.048,
+                    height: MediaQuery.of(context).size.height * 0.051,
                     child: ElevatedButton(
                       onPressed: () {
                         setState(() {

@@ -4,25 +4,31 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 import 'package:flutter_credit_card/flutter_credit_card.dart';
+import 'package:spark_app/carRental/carRental.dart';
+import 'package:spark_app/carRental/myAccountPage.dart';
 
 class CardPage extends StatefulWidget {
-  String cardNumber, cardholderName, cvv, expirationDate;
+  String cardNumber, cardholderName, cvv, expirationDate, email, fullName;
 
-  CardPage({
-    Key? key,
-    required this.cardNumber,
-    required this.cardholderName,
-    required this.cvv,
-    required this.expirationDate,
-  }) : super(key: key);
+  CardPage(
+      {Key? key,
+      required this.cardNumber,
+      required this.cardholderName,
+      required this.cvv,
+      required this.expirationDate,
+      required this.email,
+      required this.fullName})
+      : super(key: key);
 
   @override
   State<CardPage> createState() => _CardPageState();
 }
 
 class _CardPageState extends State<CardPage> {
+  BuildContext? _alertDialog;
   ScrollController _scrollController = ScrollController();
   late TextEditingController cardNumberEditingController;
   late TextEditingController cardholderNameEditingController;
@@ -30,6 +36,11 @@ class _CardPageState extends State<CardPage> {
   late TextEditingController expirationDateEditingController;
   bool isCvvFocused = false;
   bool isLoading = false;
+  bool isLoading2 = false;
+
+  String email = "";
+  String fullName = "";
+  List cardsList = [];
 
   @override
   void initState() {
@@ -41,11 +52,6 @@ class _CardPageState extends State<CardPage> {
     cvvEditingController = TextEditingController(text: widget.cvv);
     expirationDateEditingController =
         TextEditingController(text: widget.expirationDate);
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 
   @override
@@ -156,7 +162,9 @@ class _CardPageState extends State<CardPage> {
                     });
                   },
                   onTap: () {
-                    setState(() {});
+                    setState(() {
+                      isCvvFocused = false;
+                    });
                   },
                   cursorColor: Theme.of(context).highlightColor,
                   textInputAction: TextInputAction.next,
@@ -243,7 +251,9 @@ class _CardPageState extends State<CardPage> {
                     });
                   },
                   onTap: () {
-                    setState(() {});
+                    setState(() {
+                      isCvvFocused = false;
+                    });
                   },
                   cursorColor: Theme.of(context).highlightColor,
                   textInputAction: TextInputAction.next,
@@ -338,7 +348,9 @@ class _CardPageState extends State<CardPage> {
                             });
                           },
                           onTap: () {
-                            setState(() {});
+                            setState(() {
+                              isCvvFocused = true;
+                            });
                           },
                           cursorColor: Theme.of(context).highlightColor,
                           textInputAction: TextInputAction.next,
@@ -438,7 +450,7 @@ class _CardPageState extends State<CardPage> {
                           },
                           onTap: () {
                             setState(() {
-                              expirationDateEditingController.text;
+                              isCvvFocused = false;
                             });
                           },
                           cursorColor: Theme.of(context).highlightColor,
@@ -501,11 +513,37 @@ class _CardPageState extends State<CardPage> {
                     setState(() {
                       isLoading = true;
                     });
-                    Future.delayed(const Duration(seconds: 1), () {
-                      setState(() {
-                        isLoading = false;
-                        Get.back();
-                      });
+                    Future.delayed(const Duration(seconds: 1), () async {
+                      isLoading = false;
+                      widget.cardNumber == ""
+                          ? addCard(
+                              cardNumberEditingController.text,
+                              cardholderNameEditingController.text,
+                              cvvEditingController.text,
+                              expirationDateEditingController.text)
+                          : changeCard(widget.cardNumber, widget.cardholderName,
+                              widget.cvv, widget.expirationDate);
+
+                      cardsList.clear();
+                      var collection2 = FirebaseFirestore.instance
+                          .collection('Users')
+                          .doc(FirebaseAuth.instance.currentUser?.email)
+                          .collection('Cards');
+                      var querySnapshot = await collection2.get();
+                      var list = querySnapshot.docs;
+                      for (int i = 0; i < list.length; i++) {
+                        cardsList.add(list[i].data());
+                      }
+                      print('Cards List: $cardsList');
+
+                      Get.offAll(CarRental(selectedItemPosition: 1),
+                          transition: Transition.rightToLeft);
+                      Get.to(
+                          MyAccountPage(
+                              fullName: widget.fullName,
+                              email: widget.email,
+                              cardsList: cardsList),
+                          transition: Transition.rightToLeft);
                     });
                   },
                   child: isLoading
@@ -529,16 +567,51 @@ class _CardPageState extends State<CardPage> {
                       child: OutlinedButton(
                         onPressed: () {
                           setState(() {
-                            //deleteDocumentsIfCardNumberMatches(widget.cardNumber);
-                            Get.back();
+                            isLoading2 = true;
+                          });
+                          Future.delayed(const Duration(seconds: 1), () async {
+                            isLoading2 = false;
+                            deleteDocument(widget.cardNumber);
+
+                            cardsList.clear();
+                            var collection2 = FirebaseFirestore.instance
+                                .collection('Users')
+                                .doc(FirebaseAuth.instance.currentUser?.email)
+                                .collection('Cards');
+                            var querySnapshot = await collection2.get();
+                            var list = querySnapshot.docs;
+                            for (int i = 0; i < list.length; i++) {
+                              cardsList.add(list[i].data());
+                            }
+                            print('Cards List: $cardsList');
+
+                            Get.offAll(CarRental(selectedItemPosition: 1),
+                                transition: Transition.rightToLeft);
+                            Get.to(
+                                MyAccountPage(
+                                    fullName: widget.fullName,
+                                    email: widget.email,
+                                    cardsList: cardsList),
+                                transition: Transition.rightToLeft);
                           });
                         },
-                        child: Text(
-                          'Delete',
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColorDark,
-                          ),
-                        ),
+                        child: isLoading2
+                            ? SizedBox(
+                                height:
+                                    MediaQuery.of(context).size.height * 0.032,
+                                width:
+                                    MediaQuery.of(context).size.height * 0.032,
+                                child: const CircularProgressIndicator(
+                                  color: Color(0XFFFFFDFA),
+                                  strokeWidth: 2.0,
+                                ),
+                              )
+                            : Text(
+                                'Delete',
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColorDark,
+                                ),
+                              ),
                       ),
                     )
                   : const SizedBox(),
@@ -548,8 +621,71 @@ class _CardPageState extends State<CardPage> {
       ),
     );
   }
-/*
-  Future<void> deleteDocumentsIfCardNumberMatches(String cardNumber) async {
+
+  Future<void> changeCard(String cardNumber, String cardHolderName, String cvv,
+      String expirationDate) async {
+    try {
+      var collection = FirebaseFirestore.instance
+          .collection('Users')
+          .doc(FirebaseAuth.instance.currentUser?.email)
+          .collection('Cards');
+
+      var querySnapshot =
+          await collection.where('cardNumber', isEqualTo: cardNumber).get();
+
+      for (var document in querySnapshot.docs) {
+        await document.reference.update({
+          'cardNumber': cardNumberEditingController.text,
+          'cardholderName': cardholderNameEditingController.text,
+          'cvv': cvvEditingController.text,
+          'expirationDate': expirationDateEditingController.text,
+        });
+
+        print('Document updated: ${document.id}');
+      }
+
+      print('Documents updated successfully.');
+
+      Fluttertoast.showToast(
+                msg: "Your card has been updated successfully.",
+                backgroundColor: Theme.of(context).primaryColorDark,
+                textColor: const Color(0XFFFFFDFA),
+                fontSize: 14.0,
+              );
+    } catch (error) {
+      print('Error updating documents: $error');
+    }
+  }
+
+  Future<void> addCard(String cardNumber, String cardHolderName, String cvv,
+      String expirationDate) async {
+    try {
+      var collection = FirebaseFirestore.instance
+          .collection('Users')
+          .doc(FirebaseAuth.instance.currentUser?.email)
+          .collection('Cards');
+
+      await collection.add({
+        'cardNumber': cardNumber,
+        'cardholderName': cardHolderName,
+        'cvv': cvv,
+        'expirationDate': expirationDate,
+      });
+
+      Fluttertoast.showToast(
+                msg: "Your card has been added successfully.",
+                backgroundColor: Theme.of(context).primaryColorDark,
+                textColor: const Color(0XFFFFFDFA),
+                fontSize: 14.0,
+              );
+
+      print('Document added successfully.');
+    } catch (error) {
+      print('Error adding document: $error');
+    }
+  }
+
+  Future<void> deleteDocument(String cardNumber) async {
     try {
       var collection = FirebaseFirestore.instance
           .collection('Users')
@@ -564,12 +700,18 @@ class _CardPageState extends State<CardPage> {
         print('Document deleted: ${document.id}');
       }
 
+      Fluttertoast.showToast(
+        msg: "Your card has been updated successfully.",
+        backgroundColor: Theme.of(context).primaryColorDark,
+        textColor: const Color(0XFFFFFDFA),
+        fontSize: 14.0,
+      );
+
       print('Documents deleted successfully.');
     } catch (error) {
       print('Error deleting documents: $error');
     }
   }
-  */
 }
 
 class CardNumberFormatter extends TextInputFormatter {

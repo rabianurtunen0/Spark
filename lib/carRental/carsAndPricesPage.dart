@@ -503,7 +503,7 @@ class _showCarsState extends State<showCars> {
             width: MediaQuery.of(context).size.width * 0.14,
             height: MediaQuery.of(context).size.width * 0.14,
           ),
-        ),
+        )
       ],
     );
   }
@@ -554,8 +554,8 @@ class _showPackagesState extends State<showPackages> {
                   ),
                   Text(
                       widget.timeAndKm == "1 day"
-                          ? "Per km: ${widget.additionalKmFee} €"
-                          : "Per extra km: ${widget.additionalKmFee} €",
+                          ? "Her km başına: ${widget.additionalKmFee} €"
+                          : "Ekstra her km başına: ${widget.additionalKmFee} €",
                       style: TextStyle(
                         color: Theme.of(context).disabledColor,
                         fontWeight: FontWeight.w400,

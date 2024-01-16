@@ -37,6 +37,7 @@ class _MyAccountPageState extends State<MyAccountPage> {
   final oldPasswordEditingController = TextEditingController();
   final newPasswordEditingController = TextEditingController();
   final newPasswordAgainEditingController = TextEditingController();
+  final TextEditingController dataController = TextEditingController();
 
   bool personalInformation = false;
   bool payments = false;
@@ -47,15 +48,32 @@ class _MyAccountPageState extends State<MyAccountPage> {
   bool newPasswordVisible = true;
   bool newPasswordAgainVisible = true;
   bool save = false;
+  bool isLoading = false;
   String masked = "";
+  List cardsList = [];
 
   String maskCardNumber(String cardNumber) {
     String formattedCardNumber = cardNumber.replaceAll(' ', '');
     String lastFourDigits =
         formattedCardNumber.substring(formattedCardNumber.length - 4);
     String maskedCardNumber = '**** **** **** ' + lastFourDigits;
-
     return maskedCardNumber;
+  }
+
+  Future<void> updateCardList() async {
+    cardsList.clear();
+    var collection = FirebaseFirestore.instance
+        .collection('Users')
+        .doc(widget.email)
+        .collection('Cards');
+    var querySnapshot = await collection.get();
+    var list = querySnapshot.docs;
+    for (int i = 0; i < list.length; i++) {
+      cardsList.add(list[i].data());
+    }
+    print('Cards List: $cardsList');
+    widget.cardsList = cardsList;
+    setState(() {});
   }
 
   @override
@@ -63,6 +81,16 @@ class _MyAccountPageState extends State<MyAccountPage> {
     super.initState();
     fullNameEditingController = TextEditingController(text: widget.fullName);
     emailEditingController = TextEditingController(text: widget.email);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('didChangeDependencies called');
+    if (ModalRoute.of(context)?.isCurrent == true) {
+      print('Page is now visible, perform necessary actions.');
+    }
+    updateCardList();
   }
 
   @override
@@ -751,15 +779,32 @@ class _MyAccountPageState extends State<MyAccountPage> {
                                   MediaQuery.of(context).size.height * 0.046,
                               child: ElevatedButton(
                                 onPressed: () {
-                                  setState(() {
+                                  isLoading = true;
+                                  Future.delayed(const Duration(seconds: 1),
+                                      () async {
+                                    isLoading = false;
                                     updateData();
                                     changePassword = false;
                                     save = false;
                                   });
+                                  setState(() {});
                                 },
-                                child: const Text(
-                                  'Save',
-                                ),
+                                child: isLoading
+                                    ? SizedBox(
+                                        height:
+                                            MediaQuery.of(context).size.height *
+                                                0.032,
+                                        width:
+                                            MediaQuery.of(context).size.height *
+                                                0.032,
+                                        child: const CircularProgressIndicator(
+                                          color: Color(0XFFFFFDFA),
+                                          strokeWidth: 2.0,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Save',
+                                      ),
                               ),
                             )
                           : Container(),
@@ -851,7 +896,9 @@ class _MyAccountPageState extends State<MyAccountPage> {
                                                     ['cvv'],
                                                 expirationDate:
                                                     widget.cardsList[index]
-                                                        ['expirationDate']));
+                                                        ['expirationDate'],
+                                                email: widget.email,
+                                                fullName: widget.fullName));
                                           });
                                         },
                                         splashColor: Colors.transparent,
@@ -957,7 +1004,9 @@ class _MyAccountPageState extends State<MyAccountPage> {
                                           cardNumber: "",
                                           cardholderName: "",
                                           cvv: "",
-                                          expirationDate: ""));
+                                          expirationDate: "",
+                                          email: widget.email,
+                                          fullName: widget.fullName));
                                     });
                                   },
                                   splashColor: Colors.transparent,
@@ -1139,11 +1188,9 @@ class _MyAccountPageState extends State<MyAccountPage> {
   }
 
   void updateData() async {
-    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
-        .collection('Users')
-        .doc(widget.email)
-        .get();
     if (_formKey.currentState!.validate()) {
+
+
       final user = FirebaseAuth.instance.currentUser;
       final cred = EmailAuthProvider.credential(
           email: user!.email.toString(),
@@ -1161,25 +1208,32 @@ class _MyAccountPageState extends State<MyAccountPage> {
           print("Error " + error.toString());
         });
       }).catchError((e) {
-        print(e);
+        Fluttertoast.showToast(
+          msg: e.message,
+          backgroundColor: Theme.of(context).primaryColorDark,
+          textColor: const Color(0XFFFFFDFA),
+          fontSize: 14.0,
+        );
       });
-    }
-    await _auth.currentUser!.updateEmail(emailEditingController.text);
-    await FirebaseFirestore.instance
-        .collection("Users")
-        .doc(FirebaseAuth.instance.currentUser?.email)
-        .update({
-      'email': emailEditingController.text,
-      'fullname': fullNameEditingController.text,
-    }).then((value) => {
-              Fluttertoast.showToast(
-                msg: "Your information has been successfully changed",
-                backgroundColor: Theme.of(context).primaryColorDark,
-                textColor: const Color(0XFFFFFDFA),
-                fontSize: 14.0,
-              ),
-            });
 
-    Get.offAll(CarRental(selectedItemPosition: 1));
+      
+      await _auth.currentUser!.updateEmail(emailEditingController.text);
+      await FirebaseFirestore.instance
+          .collection("Users")
+          .doc(FirebaseAuth.instance.currentUser?.email)
+          .update({
+        'email': emailEditingController.text,
+        'fullname': fullNameEditingController.text,
+      }).then((value) => {
+                Fluttertoast.showToast(
+                  msg: "Your information has been successfully changed",
+                  backgroundColor: Theme.of(context).primaryColorDark,
+                  textColor: const Color(0XFFFFFDFA),
+                  fontSize: 14.0,
+                ),
+              });
+
+      Get.offAll(CarRental(selectedItemPosition: 1));
+    }
   }
 }

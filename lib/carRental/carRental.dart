@@ -7,17 +7,10 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/get_navigation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:spark_app/carRental/homePage.dart';
-import 'package:spark_app/sparkHomePage.dart';
 import 'package:spark_app/carRental/profilePage.dart';
 
 class CarRental extends StatefulWidget {
-  int selectedItemPosition;
-
-  CarRental({
-    Key? key,
-    required this.selectedItemPosition,
-  }) : super(key: key);
-  
+  const CarRental({super.key});
 
   @override
   State<CarRental> createState() => _CarRentalState();
@@ -25,7 +18,7 @@ class CarRental extends StatefulWidget {
 
 class _CarRentalState extends State<CarRental> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late int selectedItemPosition;
+  int selectedItemPosition = 0;
   late final pageController = PageController(
     initialPage: selectedItemPosition,
   );
@@ -44,7 +37,7 @@ class _CarRentalState extends State<CarRental> {
     var email = prefs.getString("email");
     print(email);
     if (email == null) {
-      fullNameText = "Guest User";
+      fullNameText = "Misafir Kullanıcı";
       emailText = "";
     } else {
       DocumentSnapshot documentSnapshot =
@@ -52,14 +45,12 @@ class _CarRentalState extends State<CarRental> {
       fullNameText = documentSnapshot.get('fullname');
       emailText = documentSnapshot.get('email');
     }
-    setState(() {});
   }
 
   @override
   void initState() {
-    super.initState();
     getInformations();
-    selectedItemPosition = widget.selectedItemPosition;
+    super.initState();
   }
 
   @override
@@ -103,10 +94,7 @@ class _CarRentalState extends State<CarRental> {
           child: FloatingActionButton(
             onPressed: () {
               setState(() {
-                Get.offAll(
-                  const SparkHomePage(),
-                  transition: Transition.leftToRight
-                );
+                Get.back();
               });
             },
             child: Icon(

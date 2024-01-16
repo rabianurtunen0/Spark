@@ -1,53 +1,44 @@
 import 'package:bootstrap_icons/bootstrap_icons.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:get/get_core/src/get_main.dart';
-import 'package:get/get_navigation/get_navigation.dart';
+
 import 'package:intl/intl.dart';
-import 'package:spark_app/carRental/payment.dart';
 
-class CarRentalPage extends StatefulWidget {
-  String svgPath,
-      model,
-      property,
-      distance,
-      walkingMinute,
-      gear,
-      dailyPrice,
-      minutePrice,
-      additionalKmFee,
-      address;
-  int fuelPercentage;
-
-  CarRentalPage(
-      {super.key,
-      required this.svgPath,
-      required this.model,
-      required this.property,
-      required this.distance,
-      required this.walkingMinute,
-      required this.gear,
-      required this.fuelPercentage,
-      required this.dailyPrice,
-      required this.minutePrice,
-      required this.additionalKmFee,
-      required this.address});
+class RentalingPage extends StatefulWidget {
+  const RentalingPage({super.key});
 
   @override
-  State<CarRentalPage> createState() => _CarRentalPageState();
+  State<RentalingPage> createState() => _RentalingPageState();
 }
 
-class _CarRentalPageState extends State<CarRentalPage> {
-  BuildContext? _alertDialog, _bottomSheet;
+class _RentalingPageState extends State<RentalingPage> {
   final _scrollController = ScrollController();
   final _scrollController2 = ScrollController();
 
+  List packageList = [
+    ['1 hour 30 km', '10.2'],
+    ['2 hours 30 km', '15.3'],
+    ['2 hours 50 km', '20.4'],
+    ['1 day', '24.0'],
+    ['3 hours 30 km', '25.5'],
+    ['3 hours 60 km', '30.6'],
+    ['5 hours 80 km', '35.6'],
+    ['8 hours 100 km', '38.0'],
+    ['1 day 100 km', '39.0'],
+    ['1 day 175 km', '45.0'],
+    ['1 day 250 km', '51.0'],
+    ['2 days 400 km', '78.0'],
+    ['3 days 600 km', '117.0'],
+    ['5 days 500 km', '195.0'],
+    ['7 days 800 km', '273.0'],
+    ['7 days 1400 km', '357.0'],
+    ['14 days 1500 km', '546.0'],
+    ['14 days 2800 km', '714.0']
+  ];
+
   bool showPackage = false;
-  int hourlyAndDailyPackageButtonNumber = 3;
 
   final date = DateFormat('dd/MM/yyyy').format(DateTime.now());
   DateTime nowTime = DateTime.now();
@@ -55,164 +46,25 @@ class _CarRentalPageState extends State<CarRentalPage> {
   DateTime time2 = DateTime.now().add(const Duration(days: 1));
   bool startTimeBar = false;
   bool endTimeBar = false;
-  String timeAndKm = '1 day';
-  String price = '';
-  double oneDayPrice = 0.0;
-  String firstPerKm = '';
-  String perKm = '';
-  //String selectedtimeAndKm = '1 day';
-  //int selectedHourlyAndDailyPackageButtonNumber = 3;
-  //String selectedPerKm = '';
-  //String selectedPrice = '';
-
-  DateTime roundToNextDayAndHour() {
-    DateTime now = DateTime.now();
-    int currentHour = now.hour;
-    int currentMinute = now.minute;
-
-    if (currentMinute > 0) {
-      currentHour++;
-    }
-
-    return DateTime(now.year, now.month, now.day + 1, currentHour, 0, 0);
-  }
-
-  void calculateDateDifference(DateTime time1, DateTime time2) async {
-    Duration difference = time2.difference(time1);
-    int daysDifference = difference.inDays;
-    int hoursDifference = difference.inHours % 24;
-    double sixHoursPrice = oneDayPrice / 4.0;
-    price = ((oneDayPrice * daysDifference) +
-            ((hoursDifference ~/ 6) * sixHoursPrice))
-        .toString();
-
-    if (daysDifference == 0) {
-      if (hoursDifference == 0) {
-        timeAndKm = "0 day";
-      } else if (hoursDifference == 1) {
-        timeAndKm = "$hoursDifference hour";
-      } else {
-        timeAndKm = "$daysDifference hours";
-      }
-    } else if (daysDifference == 1) {
-      if (hoursDifference == 0) {
-        timeAndKm = "$daysDifference day";
-      } else if (hoursDifference == 1) {
-        timeAndKm = "$daysDifference day $hoursDifference hour";
-      } else {
-        timeAndKm = "$daysDifference day $hoursDifference hours";
-      }
-    } else {
-      if (hoursDifference == 0) {
-        timeAndKm = "$daysDifference days";
-      } else if (hoursDifference == 1) {
-        timeAndKm = "$daysDifference days $hoursDifference hour";
-      } else {
-        timeAndKm = "$daysDifference days $hoursDifference hours";
-      }
-    }
-
-    timeAndKm == '1 day'
-        ? hourlyAndDailyPackageButtonNumber = 3
-        : hourlyAndDailyPackageButtonNumber = 1000;
-
-    perKm = firstPerKm;
-    /*
-      if (selectedtimeAndKm.contains(timeAndKm)) {
-        print('selectedtimeAndKm:   $selectedtimeAndKm');
-        print('TİME and Km : $timeAndKm');
-        timeAndKm = selectedtimeAndKm;
-        perKm = selectedPerKm;
-        price = selectedPrice;
-        hourlyAndDailyPackageButtonNumber =
-            selectedHourlyAndDailyPackageButtonNumber;
-      }
-      */
-      setState(() {
-        
-      });
-  }
-
-  getInformation() async {
-    var collection = FirebaseFirestore.instance
-        .collection('Cars')
-        .doc(widget.model)
-        .collection('Packages');
-    var querySnapshot = await collection.get();
-    var list = querySnapshot.docs;
-    for (int i = 0; i < list.length; i++) {
-      setState(() {
-        if (list[i]["timeAndKm"] == "1 day") {
-          int dayPrice = list[i]['price'];
-          price = dayPrice.toString();
-          oneDayPrice = dayPrice.toDouble();
-        }
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    time2 = roundToNextDayAndHour();
-    getInformation();
-    perKm = 'Per km: ${widget.additionalKmFee} €';
-    firstPerKm = 'Per km: ${widget.additionalKmFee} €';
-    setState(() {});
-  }
+  int hourlyAndDailyPackageButtonNumber = 3;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0.0,
-        backgroundColor: Colors.transparent,
-        toolbarHeight: MediaQuery.of(context).size.height * 0.05,
-        leading: Container(
-          alignment: Alignment.centerLeft,
-          margin:
-              EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.035),
-          child: IconButton(
-            onPressed: () {
-              setState(() {
-                Get.back();
-              });
-            },
-            icon: Icon(
-              Icons.arrow_back,
-              size: ScreenUtil().setSp(17),
-              color: Color(0XFF131C24).withOpacity(0.8),
-            ),
-            splashColor: Colors.transparent,
-            highlightColor: Colors.transparent,
-          ),
-        ),
-      ),
       body: SingleChildScrollView(
         controller: _scrollController,
         child: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Stack(
-                alignment: Alignment.bottomCenter,
-                children: [
-                  Container(
-                    padding: EdgeInsets.only(
-                        bottom: MediaQuery.of(context).size.height * 0.042),
-                    child: SvgPicture.asset('assets/images/shadow.svg',
-                        width: MediaQuery.of(context).size.width * 0.68),
-                  ),
-                  Container(
-                    margin: EdgeInsets.fromLTRB(
-                        0.0,
-                        MediaQuery.of(context).size.height * 0.04,
-                        0.0,
-                        MediaQuery.of(context).size.height * 0.048),
-                    child: SvgPicture.asset(widget.svgPath,
-                        width: MediaQuery.of(context).size.width * 0.48),
-                  ),
-                ],
+              Container(
+                margin: EdgeInsets.fromLTRB(
+                    0.0,
+                    MediaQuery.of(context).size.height * 0.15,
+                    0.0,
+                    MediaQuery.of(context).size.height * 0.05),
+                child: SvgPicture.asset('assets/images/mazda_car.svg',
+                    width: MediaQuery.of(context).size.width * 0.5),
               ),
               Container(
                 margin: EdgeInsets.symmetric(
@@ -235,11 +87,11 @@ class _CarRentalPageState extends State<CarRentalPage> {
                           children: [
                             Container(
                               margin: EdgeInsets.fromLTRB(
-                                  MediaQuery.of(context).size.width * 0.06,
-                                  MediaQuery.of(context).size.height * 0.018,
-                                  MediaQuery.of(context).size.width * 0.06,
+                                  MediaQuery.of(context).size.width * 0.04,
+                                  MediaQuery.of(context).size.height * 0.02,
+                                  MediaQuery.of(context).size.width * 0.04,
                                   MediaQuery.of(context).size.height * 0.004),
-                              child: Text(widget.model,
+                              child: Text('Mazda CX-5',
                                   style: TextStyle(
                                     color: const Color(0XFF131C24),
                                     fontWeight: FontWeight.w500,
@@ -248,11 +100,11 @@ class _CarRentalPageState extends State<CarRentalPage> {
                             ),
                             Container(
                               margin: EdgeInsets.fromLTRB(
-                                  MediaQuery.of(context).size.width * 0.06,
+                                  MediaQuery.of(context).size.width * 0.04,
                                   0.0,
-                                  MediaQuery.of(context).size.width * 0.06,
+                                  MediaQuery.of(context).size.width * 0.04,
                                   MediaQuery.of(context).size.height * 0.012),
-                              child: Text(widget.property,
+                              child: Text('CX-5 2.0 Power Sense 100. Year',
                                   style: TextStyle(
                                     color: Theme.of(context).disabledColor,
                                     fontWeight: FontWeight.w500,
@@ -265,15 +117,15 @@ class _CarRentalPageState extends State<CarRentalPage> {
                           margin: EdgeInsets.fromLTRB(
                               0.0,
                               0.0,
-                              MediaQuery.of(context).size.width * 0.024,
-                              MediaQuery.of(context).size.height * 0.004),
+                              MediaQuery.of(context).size.width * 0.03,
+                              MediaQuery.of(context).size.height * 0.01),
                           width: MediaQuery.of(context).size.width * 0.24,
                           height: MediaQuery.of(context).size.height * 0.028,
                           decoration: BoxDecoration(
                               color: Theme.of(context).primaryColorLight,
                               borderRadius: BorderRadius.circular(12.0)),
                           child: Center(
-                            child: Text(widget.distance,
+                            child: Text('46 m',
                                 textAlign: TextAlign.center,
                                 style: TextStyle(
                                   color: Colors.white,
@@ -312,7 +164,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                                     0.0,
                                     MediaQuery.of(context).size.height * 0.01),
                                 child: Text(
-                                  widget.walkingMinute,
+                                  '60+min',
                                   style: TextStyle(
                                     color: const Color(0XFF131C24),
                                     fontWeight: FontWeight.w400,
@@ -346,7 +198,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                                     0.0,
                                     MediaQuery.of(context).size.height * 0.01),
                                 child: Text(
-                                  widget.gear,
+                                  'Automatic',
                                   style: TextStyle(
                                     color: const Color(0XFF131C24),
                                     fontWeight: FontWeight.w400,
@@ -376,7 +228,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                                     0.0,
                                     MediaQuery.of(context).size.height * 0.01),
                                 child: Text(
-                                  '${widget.fuelPercentage}%',
+                                  '88%',
                                   style: TextStyle(
                                     color: const Color(0XFF131C24),
                                     fontWeight: FontWeight.w400,
@@ -421,14 +273,14 @@ class _CarRentalPageState extends State<CarRentalPage> {
                     ),
                     Container(
                       margin: EdgeInsets.fromLTRB(
-                          MediaQuery.of(context).size.width * 0.06,
+                          MediaQuery.of(context).size.width * 0.04,
                           0.0,
-                          MediaQuery.of(context).size.width * 0.06,
+                          MediaQuery.of(context).size.width * 0.04,
                           MediaQuery.of(context).size.height * 0.008),
                       child: Row(
                         children: [
                           Text(
-                            '${widget.minutePrice} €',
+                            '0.17' + ' €',
                             style: TextStyle(
                               color: Theme.of(context).primaryColorLight,
                               fontWeight: FontWeight.w600,
@@ -453,14 +305,14 @@ class _CarRentalPageState extends State<CarRentalPage> {
                     ),
                     Container(
                       margin: EdgeInsets.fromLTRB(
-                          MediaQuery.of(context).size.width * 0.06,
+                          MediaQuery.of(context).size.width * 0.04,
                           0.0,
-                          MediaQuery.of(context).size.width * 0.06,
+                          MediaQuery.of(context).size.width * 0.04,
                           MediaQuery.of(context).size.height * 0.008),
                       child: Row(
                         children: [
                           Text(
-                            '${widget.dailyPrice} €',
+                            '51' + ' €',
                             style: TextStyle(
                               color: Theme.of(context).primaryColorLight,
                               fontWeight: FontWeight.w600,
@@ -568,7 +420,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                                         fontWeight: FontWeight.w400,
                                         fontSize: ScreenUtil().setSp(10))),
                                 Text(
-                                  ' ${widget.additionalKmFee} €',
+                                  '0.12' + ' €',
                                   style: TextStyle(
                                       color:
                                           Theme.of(context).primaryColorLight,
@@ -607,10 +459,11 @@ class _CarRentalPageState extends State<CarRentalPage> {
                             horizontal:
                                 MediaQuery.of(context).size.width * 0.03),
                         child: Text(
-                          widget.address,
+                          'Bedir Mahallesi Ataseven Caddesi No:1 Selçuklu/KONYA',
                           style: TextStyle(
+                            //color: Theme.of(context).primaryColorDark,
                             color: const Color(0XFF131C24),
-                            fontWeight: FontWeight.w400,
+                            fontWeight: FontWeight.w500,
                             fontSize: ScreenUtil().setSp(11),
                           ),
                           maxLines: 3,
@@ -632,8 +485,6 @@ class _CarRentalPageState extends State<CarRentalPage> {
                   borderRadius: const BorderRadius.all(Radius.circular(16.0)),
                 ),
                 child: Column(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       alignment: Alignment.centerLeft,
@@ -648,165 +499,89 @@ class _CarRentalPageState extends State<CarRentalPage> {
                             fontSize: ScreenUtil().setSp(11)),
                       ),
                     ),
-                    SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.248,
-                      child: StreamBuilder<QuerySnapshot>(
-                        stream: FirebaseFirestore.instance
-                            .collection('Cars')
-                            .doc(widget.model)
-                            .collection('Packages')
-                            .snapshots(),
-                        builder: (BuildContext context,
-                            AsyncSnapshot<QuerySnapshot> snapshot) {
-                          if (snapshot.hasData) {
-                            return ListView.builder(
-                              controller: _scrollController2,
-                              padding: EdgeInsets.zero,
-                              shrinkWrap: true,
-                              itemCount: snapshot.data?.docs.length,
-                              itemBuilder: (context, index1) {
-                                DocumentSnapshot documentData =
-                                    snapshot.data!.docs[index1];
-                                print(snapshot.data!.docs[index1]);
-                                return Container(
-                                    margin: EdgeInsets.fromLTRB(
-                                        MediaQuery.of(context).size.width *
-                                            0.04,
-                                        MediaQuery.of(context).size.height *
-                                            0.004,
-                                        MediaQuery.of(context).size.width *
-                                            0.04,
-                                        MediaQuery.of(context).size.height *
-                                            0.004),
-                                    height: MediaQuery.of(context).size.height *
-                                        0.05,
-                                    decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(12.0),
-                                        border: index1 ==
-                                                hourlyAndDailyPackageButtonNumber
-                                            ? Border.all(
-                                                color: Theme.of(context)
-                                                    .primaryColorLight,
-                                              )
-                                            : const Border()),
-                                    child: MaterialButton(
-                                      highlightColor: Colors.transparent,
-                                      splashColor: Colors.transparent,
-                                      onPressed: () {
-                                        setState(() {
-                                          hourlyAndDailyPackageButtonNumber =
-                                              index1;
-                                          timeAndKm = documentData["timeAndKm"];
-                                          price =
-                                              documentData["price"].toString();
-                                          if (timeAndKm.contains('1 hour')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(hours: 1));
-                                          } else if (timeAndKm
-                                              .contains('2 hours')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(hours: 2));
-                                          } else if (timeAndKm
-                                              .contains('3 hours')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(hours: 3));
-                                          } else if (timeAndKm
-                                              .contains('5 hours')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(hours: 5));
-                                          } else if (timeAndKm
-                                              .contains('8 hours')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(hours: 8));
-                                          } else if (timeAndKm
-                                              .contains('1 day')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(days: 1));
-                                          } else if (timeAndKm
-                                              .contains('2 days')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(days: 2));
-                                          } else if (timeAndKm
-                                              .contains('3 days')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(days: 3));
-                                          } else if (timeAndKm
-                                              .contains('5 days')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(days: 5));
-                                          } else if (timeAndKm
-                                              .contains('7 days')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(days: 7));
-                                          } else if (timeAndKm
-                                              .contains('14 days')) {
-                                            time2 = DateTime.now()
-                                                .add(const Duration(days: 14));
-                                          }
-                                          documentData["timeAndKm"] == "1 day"
-                                              ? perKm = 'Per km: 0.12 €'
-                                              : perKm = 'Per extra km: 0.12 €';
-                                          /*
-                                          selectedtimeAndKm = timeAndKm;
-                                          selectedHourlyAndDailyPackageButtonNumber =
-                                              index1;
-                                          selectedPerKm = perKm;
-                                          selectedPrice = price;
-                                          */
-                                        });
-                                      },
-                                      child: Row(
+                    SingleChildScrollView(
+                      controller: _scrollController2,
+                      child: SizedBox(
+                        height: MediaQuery.of(context).size.height * 0.248,
+                        child: ListView.builder(
+                          scrollDirection: Axis.vertical,
+                          shrinkWrap: true,
+                          itemCount: packageList.length,
+                          itemBuilder: (context, index1) {
+                            return Container(
+                                margin: EdgeInsets.fromLTRB(
+                                    MediaQuery.of(context).size.width * 0.04,
+                                    MediaQuery.of(context).size.height * 0.004,
+                                    MediaQuery.of(context).size.width * 0.04,
+                                    MediaQuery.of(context).size.height * 0.004),
+                                height:
+                                    MediaQuery.of(context).size.height * 0.05,
+                                decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12.0),
+                                    border: index1 ==
+                                            hourlyAndDailyPackageButtonNumber
+                                        ? Border.all(
+                                            color: Theme.of(context)
+                                                .primaryColorLight,
+                                          )
+                                        : const Border()),
+                                child: MaterialButton(
+                                  highlightColor: Colors.transparent,
+                                  splashColor: Colors.transparent,
+                                  onPressed: () {
+                                    setState(() {
+                                      hourlyAndDailyPackageButtonNumber =
+                                          index1;
+                                    });
+                                  },
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Column(
                                         mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          Column(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                documentData["timeAndKm"],
-                                                style: TextStyle(
-                                                    color:
-                                                        const Color(0XFF131C24),
-                                                    fontWeight: FontWeight.w400,
-                                                    fontSize:
-                                                        ScreenUtil().setSp(11)),
-                                              ),
-                                              Text(
-                                                  documentData["timeAndKm"] ==
-                                                          "1 day"
-                                                      ? 'Per km: 0.12 €'
-                                                      : 'Per extra km: 0.12 €',
-                                                  style: TextStyle(
-                                                    color: Theme.of(context)
-                                                        .disabledColor,
-                                                    fontWeight: FontWeight.w400,
-                                                    fontSize:
-                                                        ScreenUtil().setSp(10),
-                                                  ))
-                                            ],
-                                          ),
                                           Text(
-                                            '${documentData["price"]} €',
+                                            packageList[index1][0],
                                             style: TextStyle(
                                                 color: const Color(0XFF131C24),
                                                 fontWeight: FontWeight.w400,
                                                 fontSize:
                                                     ScreenUtil().setSp(11)),
                                           ),
+                                          Text(
+                                              packageList[index1][0] == "1 day"
+                                                  ? "Her km başına: "
+                                                      '0.12'
+                                                      " €"
+                                                  : "Ekstra her km başına: "
+                                                      '0.12'
+                                                      " €",
+                                              style: TextStyle(
+                                                color: Theme.of(context)
+                                                    .disabledColor,
+                                                fontWeight: FontWeight.w400,
+                                                fontSize:
+                                                    ScreenUtil().setSp(10),
+                                              ))
                                         ],
                                       ),
-                                    ));
-                              },
-                            );
-                          } else {
-                            return Container();
-                          }
-                        },
+                                      Text(
+                                        packageList[index1][1] + ' €',
+                                        style: TextStyle(
+                                            color: const Color(0XFF131C24),
+                                            fontWeight: FontWeight.w400,
+                                            fontSize: ScreenUtil().setSp(11)),
+                                      ),
+                                    ],
+                                  ),
+                                ));
+                          },
+                        ),
                       ),
                     ),
                   ],
@@ -817,10 +592,10 @@ class _CarRentalPageState extends State<CarRentalPage> {
                     vertical: MediaQuery.of(context).size.height * 0.01),
                 width: MediaQuery.of(context).size.width * 0.86,
                 height: startTimeBar
-                    ? MediaQuery.of(context).size.height * 0.28
+                    ? MediaQuery.of(context).size.height * 0.33
                     : endTimeBar
-                        ? MediaQuery.of(context).size.height * 0.28
-                        : MediaQuery.of(context).size.height * 0.12,
+                        ? MediaQuery.of(context).size.height * 0.33
+                        : MediaQuery.of(context).size.height * 0.18,
                 decoration: BoxDecoration(
                   color: Theme.of(context).cardColor,
                   borderRadius: const BorderRadius.all(Radius.circular(16.0)),
@@ -828,7 +603,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                 child: Column(
                   children: [
                     Container(
-                      width: MediaQuery.of(context).size.width * 0.78,
+                      width: MediaQuery.of(context).size.width * 0.76,
                       height: MediaQuery.of(context).size.height * 0.06,
                       decoration: BoxDecoration(
                         border: Border(
@@ -853,7 +628,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                               style: TextStyle(
                                 color: const Color(0XFF131C24),
                                 fontWeight: FontWeight.w500,
-                                fontSize: ScreenUtil().setSp(11),
+                                fontSize: ScreenUtil().setSp(12),
                               ),
                             ),
                           ),
@@ -941,7 +716,6 @@ class _CarRentalPageState extends State<CarRentalPage> {
                                     onDateTimeChanged: (DateTime newDateTime) {
                                       setState(() {
                                         time1 = newDateTime;
-                                        calculateDateDifference(time1, time2);
                                       });
                                     },
                                     use24hFormat: false,
@@ -975,17 +749,15 @@ class _CarRentalPageState extends State<CarRentalPage> {
                           )
                         : Container(),
                     Container(
-                      width: MediaQuery.of(context).size.width * 0.78,
+                      width: MediaQuery.of(context).size.width * 0.76,
                       height: MediaQuery.of(context).size.height * 0.06,
                       decoration: BoxDecoration(
-                        border: endTimeBar
-                            ? Border(
-                                bottom: BorderSide(
-                                  color: Theme.of(context).disabledColor,
-                                  width: 0.3,
-                                ),
-                              )
-                            : const Border(),
+                        border: Border(
+                          bottom: BorderSide(
+                            color: Theme.of(context).disabledColor,
+                            width: 0.3,
+                          ),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1002,7 +774,7 @@ class _CarRentalPageState extends State<CarRentalPage> {
                               style: TextStyle(
                                 color: const Color(0XFF131C24),
                                 fontWeight: FontWeight.w500,
-                                fontSize: ScreenUtil().setSp(11),
+                                fontSize: ScreenUtil().setSp(12),
                               ),
                             ),
                           ),
@@ -1067,6 +839,13 @@ class _CarRentalPageState extends State<CarRentalPage> {
                             padding: EdgeInsets.symmetric(
                                 horizontal:
                                     MediaQuery.of(context).size.width * 0.05),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                  bottom: BorderSide(
+                                color: Theme.of(context).disabledColor,
+                                width: 0.3,
+                              )),
+                            ),
                             alignment: Alignment.center,
                             child: Stack(
                               children: [
@@ -1083,7 +862,6 @@ class _CarRentalPageState extends State<CarRentalPage> {
                                     onDateTimeChanged: (DateTime newDateTime) {
                                       setState(() {
                                         time2 = newDateTime;
-                                        calculateDateDifference(time1, time2);
                                       });
                                     },
                                     use24hFormat: false,
@@ -1116,86 +894,105 @@ class _CarRentalPageState extends State<CarRentalPage> {
                             ),
                           )
                         : Container(),
-                  ],
-                ),
-              ),
-              Container(
-                margin: EdgeInsets.symmetric(
-                    vertical: MediaQuery.of(context).size.height * 0.01),
-                padding: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width * 0.06),
-                width: MediaQuery.of(context).size.width * 0.86,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: const BorderRadius.all(Radius.circular(16.0)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(
-                          alignment: Alignment.centerLeft,
-                          margin: EdgeInsets.fromLTRB(
-                              0.0,
-                              MediaQuery.of(context).size.height * 0.015,
-                              0.0,
-                              MediaQuery.of(context).size.height * 0.01),
-                          child: Text(
-                            'Rental Price',
-                            style: TextStyle(
-                                color: Theme.of(context).primaryColorDark,
-                                fontWeight: FontWeight.w600,
-                                fontSize: ScreenUtil().setSp(12)),
-                          ),
-                        ),
-                        Text(
-                          timeAndKm,
-                          style: TextStyle(
-                              color: const Color(0XFF131C24),
-                              fontWeight: FontWeight.w400,
-                              fontSize: ScreenUtil().setSp(11)),
-                        ),
-                        Container(
-                          margin: EdgeInsets.only(
-                              bottom:
-                                  MediaQuery.of(context).size.height * 0.015),
-                          child: Text(perKm,
+                    Container(
+                      width: MediaQuery.of(context).size.width * 0.76,
+                      height: MediaQuery.of(context).size.height * 0.048,
+                      child: Row(
+                        children: [
+                          Container(
+                            alignment: Alignment.centerLeft,
+                            margin: EdgeInsets.fromLTRB(
+                                MediaQuery.of(context).size.width * 0.016,
+                                MediaQuery.of(context).size.height * 0.008,
+                                0.0,
+                                0.0),
+                            child: Text(
+                              'Time period',
                               style: TextStyle(
-                                color: Theme.of(context).disabledColor,
-                                fontWeight: FontWeight.w400,
-                                fontSize: ScreenUtil().setSp(10),
-                              )),
-                        )
-                      ],
-                    ),
-                    Text(
-                      ' $price €',
-                      style: TextStyle(
-                        color: Theme.of(context).primaryColorLight,
-                        fontWeight: FontWeight.w600,
-                        fontSize: ScreenUtil().setSp(17),
+                                color: const Color(0XFF131C24),
+                                fontWeight: FontWeight.w500,
+                                fontSize: ScreenUtil().setSp(12),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
               ),
               Container(
+                  margin: EdgeInsets.symmetric(
+                      vertical: MediaQuery.of(context).size.height * 0.01),
+                  padding: EdgeInsets.symmetric(
+                    horizontal: MediaQuery.of(context).size.width * 0.07,
+                    vertical: MediaQuery.of(context).size.height * 0.018,
+                  ),
+                  width: MediaQuery.of(context).size.width * 0.86,
+                  height: MediaQuery.of(context).size.height * 0.28,
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                    borderRadius: const BorderRadius.all(Radius.circular(16.0)),
+                  ),
+                  child: Column(children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Container(
+                          alignment: Alignment.centerLeft,
+                          child: Text(
+                            'Rent price',
+                            style: TextStyle(
+                              color: const Color(0XFF131C24),
+                              fontWeight: FontWeight.w500,
+                              fontSize: ScreenUtil().setSp(12),
+                            ),
+                          ),
+                        ),
+                        Container(
+                          margin: EdgeInsets.fromLTRB(
+                              MediaQuery.of(context).size.width * 0.04,
+                              0.0,
+                              MediaQuery.of(context).size.width * 0.04,
+                              MediaQuery.of(context).size.height * 0.008),
+                          child: Row(
+                            children: [
+                              Text(
+                                '51' + ' €',
+                                style: TextStyle(
+                                  color: Theme.of(context).primaryColorLight,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: ScreenUtil().setSp(17),
+                                ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.symmetric(
+                                    horizontal:
+                                        MediaQuery.of(context).size.width *
+                                            0.02),
+                                child: Text(
+                                  '/ 1 Day',
+                                  style: TextStyle(
+                                    color: Theme.of(context).disabledColor,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: ScreenUtil().setSp(10),
+                                  ),
+                                ),
+                              )
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  ])),
+              Container(
                 margin: EdgeInsets.fromLTRB(
-                    0.0,
-                    MediaQuery.of(context).size.height * 0.022,
-                    0.0,
-                    MediaQuery.of(context).size.height * 0.088),
+                    0.0, MediaQuery.of(context).size.height * 0.022, 0.0, 0.0),
                 width: MediaQuery.of(context).size.width * 0.68,
-                height: MediaQuery.of(context).size.height * 0.048,
+                height: MediaQuery.of(context).size.height * 0.051,
                 child: ElevatedButton(
                   onPressed: () {
-                    setState(() {
-                      Payment payment = Payment(timeAndKm, price);
-                      payment.showPaymentScreen(context);
-                    });
+                    setState(() {});
                   },
                   child: const Text('Rent'),
                 ),

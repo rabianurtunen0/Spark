@@ -11,14 +11,14 @@ import 'package:spark_app/carRental/carRental.dart';
 import 'package:spark_app/chargeStation/chargeStation.dart';
 import 'package:spark_app/firstPage.dart';
 
-class SparkHomePage extends StatefulWidget {
-  const SparkHomePage({super.key});
+class HomePage extends StatefulWidget {
+  const HomePage({super.key});
 
   @override
-  State<SparkHomePage> createState() => _SparkHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _SparkHomePageState extends State<SparkHomePage> {
+class _HomePageState extends State<HomePage> {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
@@ -204,7 +204,7 @@ class _SparkHomePageState extends State<SparkHomePage> {
               GestureDetector(
                 onTap: () {
                   setState(() {
-                    Get.to(CarRental(selectedItemPosition: 0,));
+                    Get.to(const CarRental());
                   });
                 },
                 child: Container(

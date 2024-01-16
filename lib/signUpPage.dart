@@ -9,7 +9,6 @@ import 'package:get/get_navigation/get_navigation.dart';
 //import 'package:google_sign_in/google_sign_in.dart';
 import 'package:spark_app/loginPage.dart';
 import 'package:smooth_page_indicator/smooth_page_indicator.dart';
-import 'package:spark_app/services/authService.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -185,12 +184,13 @@ class _SignUpPageState extends State<SignUpPage> {
                       margin: EdgeInsets.fromLTRB(0.0,
                           MediaQuery.of(context).size.height * 0.016, 0.0, 0.0),
                       width: MediaQuery.of(context).size.width * 0.68,
-                      height: MediaQuery.of(context).size.height * 0.048,
+                      height: MediaQuery.of(context).size.height * 0.051,
                       child: OutlinedButton(
                         onPressed: () {
-                          
+                          setState(() {
+                            //googleAccount();
+                          });
                         },
-                        //onPressed: () => AuthService().signInWithGoogle(),
                         style: ButtonStyle(
                           backgroundColor: MaterialStateProperty.all<Color>(
                               const Color(0XFFE5E7E9)),
@@ -231,7 +231,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       margin: EdgeInsets.fromLTRB(0.0,
                           MediaQuery.of(context).size.height * 0.016, 0.0, 0.0),
                       width: MediaQuery.of(context).size.width * 0.68,
-                      height: MediaQuery.of(context).size.height * 0.048,
+                      height: MediaQuery.of(context).size.height * 0.051,
                       child: OutlinedButton(
                         onPressed: () {
                           setState(() {});
@@ -572,7 +572,7 @@ class _SignUpPageState extends State<SignUpPage> {
                       margin: EdgeInsets.fromLTRB(0.0,
                           MediaQuery.of(context).size.height * 0.01, 0.0, 0.0),
                       width: MediaQuery.of(context).size.width * 0.68,
-                      height: MediaQuery.of(context).size.height * 0.048,
+                      height: MediaQuery.of(context).size.height * 0.051,
                       child: ElevatedButton(
                         onPressed: () {
                           setState(() {

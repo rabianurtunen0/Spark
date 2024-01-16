@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 
-class MembershipAgreementPage extends StatefulWidget {
-  const MembershipAgreementPage({super.key});
+class PrivilegesPage extends StatefulWidget {
+  const PrivilegesPage({super.key});
 
   @override
-  State<MembershipAgreementPage> createState() => _MembershipAgreementPageState();
+  State<PrivilegesPage> createState() => _PrivilegesPageState();
 }
 
-class _MembershipAgreementPageState extends State<MembershipAgreementPage> {
+class _PrivilegesPageState extends State<PrivilegesPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Text(
-          'Üyelik Sözleşmesi',
+          'Ayrıcalıklar',
           style: TextStyle(
       color: Color(0XFF515856), 
       fontWeight: FontWeight.w500,
